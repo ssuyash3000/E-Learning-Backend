@@ -1,0 +1,14 @@
+{
+  "name": "e-learning",
+  "version": "1.0.0",
+  "description": "E-Learning Application Backend",
+  "main": "server.js",
+  "scripts": {
+    "test": "node server.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
