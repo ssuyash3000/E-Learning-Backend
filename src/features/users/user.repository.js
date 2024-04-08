@@ -1,7 +1,40 @@
+import { hash } from "bcrypt";
 import sql from "../../config/postgres.js";
 import { UserError } from "../../error-handler/userError.js";
 
 export default class UserRepository {
+  async fetchOTP(email) {
+    try {
+      let record =
+        await sql.unsafe(`SELECT * FROM otps WHERE email = '${email}';
+      `);
+      return record;
+    } catch (error) {
+      console.log("Error from user repository fetch otp", error);
+      throw new UserError("Something went wrong", 503);
+    }
+  }
+  async storeOTP(email, newOtp, timestamp) {
+    try {
+      let hashed_otp = await sql.unsafe(
+        `INSERT INTO otps (email, hashed_otp, updated_at)
+      VALUES ($1, $2, $3)
+      ON CONFLICT (email)
+      DO UPDATE SET hashed_otp = excluded.hashed_otp, updated_at = excluded.updated_at
+      RETURNING hashed_otp;`,
+        [email, newOtp, timestamp]
+      );
+
+      return hashed_otp;
+    } catch (error) {
+      console.log("Error from storeOtp method coming user.repository: ", error);
+      if (error.code && error.code == 23505) {
+        throw new UserError(`${error.detail}`, 503);
+      }
+      throw new UserError("Something went wrong", 503);
+    }
+  }
+
   async updateUserPassword(userId, newPassword) {
     // Initialize the update query
     let updateQuery = `UPDATE users SET`;
@@ -20,7 +53,7 @@ export default class UserRepository {
     // Append returningPart to include the updated user record
     updateQuery += returningPart;
     // Execute the update query
-    console.log(updateQuery);
+    //console.log(updateQuery);
     try {
       const result = await sql.unsafe(updateQuery);
 
@@ -90,7 +123,10 @@ export default class UserRepository {
       `SELECT user_id, username, password FROM users WHERE email = '${email}';`
     );
     // console.log(result);
-    return result[0];
+    if (result.length > 0) return result[0];
+    else {
+      return result;
+    }
   }
   async findByEmail(email) {
     const result = await sql.unsafe(
@@ -119,5 +155,4 @@ export default class UserRepository {
       throw new UserError("Something went wrong", 503);
     }
   }
-  //async SignIn()
 }

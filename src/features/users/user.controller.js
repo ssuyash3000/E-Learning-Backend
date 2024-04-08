@@ -1,7 +1,8 @@
 import UserModel from "./user.model.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
-
+import { Resend } from "resend";
+import OTP from "OTP";
 import UserRepository from "./user.repository.js";
 import { UserError } from "../../error-handler/userError.js";
 import UserDetailsValidator from "../../middleware/userDetailsValidator.js";
@@ -108,14 +109,70 @@ export default class UserController {
       throw new ApplicationError("Something wrong with this request", 503);
     }
   }
-  async forgotPassword(req, res) {
-    let { userId, otp, newPassword } = req.body;
+  async forgetPassword(req, res) {
+    let { email, otp, newPassword } = req.body;
 
+    if (!UserDetailsValidator.emailValidator(email)) {
+      return res.status(400).json({ error: "Invalid email format" });
+    }
+    let userData = await this.userRepository.findUser(email);
+    console.log(userData);
+    let userId = -1;
+    if (Array.isArray(userData)) {
+      return res
+        .status(400)
+        .json({ error: "User does not exists with this email" });
+    } else {
+      userId = userData.user_id;
+    }
     if (otp) {
       //verify otp and if correct change the password
+      let otpRecord = await this.userRepository.fetchOTP(email);
+      let timestamp = otpRecord[0].updated_at;
+      const otpTime = new Date(timestamp);
+
+      // Get the current time
+      const currentTime = new Date();
+
+      // Calculate the difference in milliseconds
+      const timeDifferenceMs = currentTime - otpTime;
+
+      // Convert milliseconds to minutes
+      const timeDifferenceMinutes = Math.floor(timeDifferenceMs / (1000 * 60));
+      // console.log("current time ", currentTime);
+      // console.log("otp time", otpTime);
+      // console.log("Time difference ", timeDifferenceMinutes);
+      if (timeDifferenceMinutes >= 15) {
+        return res.status(401).send("OTP has expired, request for new otp");
+      }
+      if (!UserDetailsValidator.passwordValidator(newPassword)) {
+        return res.status(400).json({
+          error:
+            "Password must be at least 8 characters long and contain at least 1 special character",
+        });
+      }
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      let response = await this.userRepository.updateUserPassword(
+        userId,
+        hashedPassword
+      );
+      if (response) {
+        return res.status(201).send("Password Updated Successfully");
+      } else {
+        return res.status(401).send("Password updation not successful");
+      }
     } else {
+      let newOTP = new OTP().totp();
+      this.userRepository.storeOTP(email, newOTP, new Date());
+      const resend = new Resend(process.env.RE_SEND_API_KEY);
       //send otp
-      
+      resend.emails.send({
+        from: "e-learning@resend.dev",
+        to: `${email}`,
+        subject: "Otp for password change",
+        html: `<p>OTP for password reset is <strong>${newOTP}</strong>! OTP will be valid for only 15 Minutes</p>`,
+      });
+      return res.status(200).send("OTP sent");
     }
   }
   async userPasswordReset(req, res) {

@@ -31,4 +31,7 @@ UserRouter.put(
 UserRouter.put("/updatePassword", jwtAuth, (req, res, next) => {
   userController.userPasswordReset(req, res, next);
 });
+UserRouter.put("/forgetPassword", (req, res, next) => {
+  userController.forgetPassword(req, res, next);
+});
 export default UserRouter;

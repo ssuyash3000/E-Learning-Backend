@@ -1,4 +1,3 @@
-
 import sql from "./postgres.js";
 
 let generationQueries = [
@@ -27,6 +26,17 @@ let generationQueries = [
         FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
         FOREIGN KEY (course_id) REFERENCES courses(course_id) ON DELETE CASCADE
     );`,
+  // for generating otps table
+  `CREATE TABLE otps (
+    id SERIAL PRIMARY KEY,
+    email VARCHAR(100) UNIQUE REFERENCES users(email),
+    hashed_otp TEXT,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+  );`,
+  // `ALTER TABLE otps
+  // ALTER COLUMN created_at SET DATA TYPE TIMESTAMPTZ,
+  // ALTER COLUMN updated_at SET DATA TYPE TIMESTAMPTZ;`,
 ];
 
 export default function createReqTables() {
@@ -36,6 +46,7 @@ export default function createReqTables() {
       const result = await sql.unsafe(query);
       console.log(result);
     } catch (error) {
+      //console.log(error);
       if (error.code === "42P07") {
         console.log("This table already exist");
       }
