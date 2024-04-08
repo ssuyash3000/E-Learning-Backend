@@ -2,6 +2,40 @@ import sql from "../../config/postgres.js";
 import { UserError } from "../../error-handler/userError.js";
 
 export default class UserRepository {
+  async updateUserPassword(userId, newPassword) {
+    // Initialize the update query
+    let updateQuery = `UPDATE users SET`;
+
+    // Initialize the returning part of the query
+    let returningPart = ` RETURNING user_id, email, username`;
+
+    updateQuery += ` password = '${newPassword}',`;
+
+    // Remove the trailing comma from the update query
+    updateQuery = updateQuery.slice(0, -1);
+
+    // Add the WHERE clause to specify the user to be updated
+    updateQuery += ` WHERE user_id = '${userId}'`;
+
+    // Append returningPart to include the updated user record
+    updateQuery += returningPart;
+    // Execute the update query
+    console.log(updateQuery);
+    try {
+      const result = await sql.unsafe(updateQuery);
+
+      let updatedUser = {};
+      updatedUser = result[0];
+
+      return updatedUser;
+    } catch (error) {
+      console.log(error);
+      if (error.code && error.code == 23505) {
+        throw new UserError(`${error.detail}`, 503);
+      }
+      throw new UserError("Something went wrong", 503);
+    }
+  }
   async updateUser(userId, newUsername, newEmail) {
     // Initialize the update query
     let updateQuery = `UPDATE users SET`;
@@ -43,6 +77,13 @@ export default class UserRepository {
       }
       throw new UserError("Something went wrong", 503);
     }
+  }
+  async findUserByUserId(userId) {
+    const result = await sql.unsafe(
+      `SELECT user_id, username, password FROM users WHERE user_id = '${userId}';`
+    );
+    // console.log(result);
+    return result[0];
   }
   async findUser(email) {
     const result = await sql.unsafe(

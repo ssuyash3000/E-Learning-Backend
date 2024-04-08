@@ -4,6 +4,7 @@ import bcrypt from "bcrypt";
 
 import UserRepository from "./user.repository.js";
 import { UserError } from "../../error-handler/userError.js";
+import UserDetailsValidator from "../../middleware/userDetailsValidator.js";
 
 export default class UserController {
   constructor() {
@@ -37,7 +38,7 @@ export default class UserController {
 
       res.status(200).send(result);
     } catch (err) {
-      console.log(err);
+      console.log("Error form signUp: ", err);
       next(err);
     }
   }
@@ -74,14 +75,19 @@ export default class UserController {
       }
       //result = await this.userRepsitory.SignIn(email, password);
     } catch (err) {
-      console.log(err);
-      throw new ApplicationError("Something wrong with database", 503);
+      console.log("Error form signIn: ", err);
+      throw new ApplicationError("Something wrong with this request", 503);
     }
   }
   async getUserDetails(req, res) {
-    let obj = { username: req.username, email: req.email };
-    console.log(obj);
-    return res.status(200).send(obj);
+    try {
+      let obj = { username: req.username, email: req.email };
+      console.log(obj);
+      return res.status(200).send(obj);
+    } catch (error) {
+      console.log("Error form getUserDetails: ", err);
+      throw new ApplicationError("Something wrong with this request", 503);
+    }
   }
   async updateUserDetails(req, res) {
     let { newUsername, newEmail } = req.body;
@@ -99,7 +105,49 @@ export default class UserController {
       return res.status(201).send(updatedRecord);
     } catch (err) {
       console.log("Error form update user details: ", err);
-      throw new ApplicationError("Something wrong with database", 503);
+      throw new ApplicationError("Something wrong with this request", 503);
+    }
+  }
+  async forgotPassword(req, res) {
+    let { userId, otp, newPassword } = req.body;
+
+    if (otp) {
+      //verify otp and if correct change the password
+    } else {
+      //send otp
+      
+    }
+  }
+  async userPasswordReset(req, res) {
+    let { userId, newPassword, oldPassword } = req.body;
+    let user = await this.userRepository.findUserByUserId(userId);
+    console.log(oldPassword);
+    const result = await bcrypt.compare(oldPassword, user.password);
+    try {
+      if (result) {
+        if (!UserDetailsValidator.passwordValidator(newPassword)) {
+          return res
+            .status(401)
+            .send(
+              "Password must be at least 8 characters long and contain at least 1 special character"
+            );
+        }
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        let response = this.userRepository.updateUserPassword(
+          userId,
+          hashedPassword
+        );
+        if (response) {
+          return res.status(201).send("Password Updated Successfully");
+        } else {
+          return res.status(401).send("Password updation not successful");
+        }
+      } else {
+        return res.status(401).send("Old password entered was not correct");
+      }
+    } catch (error) {
+      console.log("Error form userPasswordReset: ", err);
+      throw new ApplicationError("Something wrong with this request", 503);
     }
   }
 }
