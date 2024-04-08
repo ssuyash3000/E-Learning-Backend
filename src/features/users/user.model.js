@@ -1,14 +1,9 @@
-
-
 export default class UserModel {
-  constructor(name, email) {
-    this.name = name;
+  constructor(username, email, hashedPassword) {
+    this.username = username;
     this.email = email;
+    this.hashedPassword = hashedPassword;
   }
 }
 
 var users = [];
-
-
-
-
