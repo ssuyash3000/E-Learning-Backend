@@ -22,8 +22,8 @@ server.use((err, req, res, next) => {
   console.log(err);
   res.status(500).send("Something went wrong");
 });
-
-server.listen("3400", () => {
+const port = process.env.PORT || 3400;
+server.listen(port, () => {
   createReqTables();
-  console.log("Server has started at port 3400");
+  console.log(`Server has started at port ${port}`);
 });
