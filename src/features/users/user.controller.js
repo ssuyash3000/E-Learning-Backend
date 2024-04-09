@@ -5,7 +5,7 @@ import { Resend } from "resend";
 import OTP from "otp";
 import UserRepository from "./user.repository.js";
 import { UserError } from "../../error-handler/userError.js";
-import UserDetailsValidator from "../../middleware/userDetailsValidator.js";
+import UserDetailsValidator from "../../middleware/userDetails.validator.js";
 
 export default class UserController {
   constructor() {

@@ -7,17 +7,21 @@ let generationQueries = [
         username VARCHAR(50) NOT NULL UNIQUE,
         email VARCHAR(100) NOT NULL UNIQUE,
         password VARCHAR(500) NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
     );`,
   //Table for storing information about courses
   `CREATE TABLE courses (
-        course_id SERIAL PRIMARY KEY,
-        course_name VARCHAR(100) NOT NULL,
-        instructor VARCHAR(100) NOT NULL,
-        description TEXT,
-        price NUMERIC(10, 2) NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );`,
+    course_id SERIAL PRIMARY KEY,
+    course_name VARCHAR(100) NOT NULL,
+    instructor VARCHAR(100) NOT NULL,
+    description TEXT,
+    price NUMERIC(10, 2) NOT NULL,
+    level VARCHAR(100),
+    category VARCHAR(100),
+    popularity INTEGER,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+`,
   //Table for mapping users to courses (many-to-many relationship)
   `CREATE TABLE user_courses (
         user_id INT NOT NULL,
@@ -34,9 +38,17 @@ let generationQueries = [
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
   );`,
+  `CREATE TABLE superadmins (
+    user_id INT PRIMARY KEY,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);`,
   // `ALTER TABLE otps
   // ALTER COLUMN created_at SET DATA TYPE TIMESTAMPTZ,
   // ALTER COLUMN updated_at SET DATA TYPE TIMESTAMPTZ;`,
+  // `ALTER TABLE courses
+  // ADD COLUMN level VARCHAR(100),
+  // ADD COLUMN category VARCHAR(100),
+  // ADD COLUMN popularity INTEGER;`
 ];
 
 export default function createReqTables() {
@@ -46,7 +58,7 @@ export default function createReqTables() {
       const result = await sql.unsafe(query);
       console.log(result);
     } catch (error) {
-      //console.log(error);
+      // console.log(error);
       if (error.code === "42P07") {
         console.log("This table already exist");
       }

@@ -1,7 +1,7 @@
 import express from "express";
 import UserController from "./user.controller.js";
 import jwtAuth from "../../middleware/jwt.middleware.js";
-import UserDetailsValidator from "../../middleware/userDetailsValidator.js";
+import UserDetailsValidator from "../../middleware/userDetails.validator.js";
 
 const UserRouter = express.Router();
 
