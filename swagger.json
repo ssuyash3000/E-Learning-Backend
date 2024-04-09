@@ -7,6 +7,10 @@
   },
   "servers": [
     {
+      "url": "https://e-learning-backend-production-3d18.up.railway.app/",
+      "description": "API for E-commerce application - \nURL for testing on hosted link"
+    },
+    {
       "url": "http://localhost:3400",
       "description": "API for E-commerce application - \nURL for testing in local"
     }
@@ -370,7 +374,6 @@
                       "error": "User does not exists with this email"
                     }
                   }
-
                 }
               }
             }
