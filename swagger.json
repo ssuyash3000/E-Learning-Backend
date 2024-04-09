@@ -40,8 +40,8 @@
                   }
                 },
                 "example": {
-                  "email": "ssuyash2001@gmail.com",
-                  "password": "123456789@@"
+                  "email": "example@example.com",
+                  "password": "newpassword11@@"
                 }
               }
             }
@@ -56,6 +56,9 @@
           },
           "404": {
             "description": "This email does not exists"
+          },
+          "500": {
+            "description": "The server has encountered a situation it does not know how to handle."
           }
         }
       }
@@ -112,7 +115,7 @@
                   },
                   "EmailError": {
                     "value": {
-                      "error": "Incorrect Email foramt"
+                      "error": "Incorrect Email format"
                     }
                   },
                   "UsernameError": {
@@ -124,7 +127,9 @@
               }
             }
           },
-
+          "200": {
+            "description": "User created successfuly"
+          },
           "409": {
             "description": "User with this, already exists"
           },
@@ -146,6 +151,232 @@
           },
           "401": {
             "description": "Unauthorized"
+          },
+          "500": {
+            "description": "The server has encountered a situation it does not know how to handle."
+          }
+        }
+      }
+    },
+    "/api/user/updateDetails/": {
+      "put": {
+        "tags": ["User"],
+        "summary": "Update user details",
+        "security": [{ "JWT": {} }],
+        "description": "Update user details",
+
+        "requestBody": {
+          "description": "Pass only what you want to update, i.e., you can pass either username or email or both.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "newUsername": {
+                    "type": ["string", " null"],
+                    "description": "New username to update (optional)"
+                  },
+                  "newEmail": {
+                    "type": ["string", " null"],
+                    "description": "New email to update (optional)"
+                  }
+                },
+                "example": {
+                  "newEmail": "example@example.com",
+                  "newUsername": "example_user_name"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Updated Successfully"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "description": "Description of the specific error"
+                    }
+                  }
+                },
+                "examples": {
+                  "DataPointMissing": {
+                    "value": {
+                      "error": "At least one of newUsername or newEmail is required"
+                    }
+                  },
+                  "EmailError": {
+                    "value": {
+                      "error": "Incorrect Email format"
+                    }
+                  },
+                  "UsernameError": {
+                    "value": {
+                      "error": "Username must be at least 3 characters long"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "The server has encountered a situation it does not know how to handle."
+          }
+        }
+      }
+    },
+    "/api/user/updatePassword/": {
+      "put": {
+        "tags": ["User"],
+        "summary": "Update user password when he logged in",
+        "security": [{ "JWT": {} }],
+        "description": "Update user password when he logged in",
+        "requestBody": {
+          "description": "Pass user's old password and new password",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "newPassword": {
+                    "type": "string"
+                  },
+                  "oldPassword": {
+                    "type": "string"
+                  }
+                },
+                "example": {
+                  "newPassword": "newPassword",
+                  "oldPassword": "oldPassword"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Password Updated Successfully"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "description": "Description of the specific error"
+                    }
+                  }
+                },
+                "examples": {
+                  "OldPasswordIncorrect": {
+                    "value": {
+                      "error": "Old password entered was not correct"
+                    }
+                  },
+                  "NewPasswordNotValid": {
+                    "value": {
+                      "error": "Password must be at least 8 characters long and contain at least 1 special character"
+                    }
+                  },
+                  "PasswordUpdateUnsuccessful": {
+                    "value": {
+                      "error": "Password updation not successful"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/user/forgetPassword/": {
+      "put": {
+        "tags": ["User"],
+        "summary": "Reset Password by sending mail to registered user",
+
+        "description": "User can reset password without logging in by using otp, OTP will be only valid for 15 minutes",
+        "requestBody": {
+          "description": "By passing only email field and not otp in body will trigger the OTP to the registered mail",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string"
+                  },
+                  "otp": {
+                    "type": ["string", " null"],
+                    "description": "Pass this after otp is triggred to mail"
+                  },
+                  "newPassword": {
+                    "type": "string"
+                  }
+                },
+                "example": {
+                  "newPassword": "newPassword",
+                  "userOtp": "123456",
+                  "email": "example@example.com"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "OTP sent" },
+          "201": {
+            "description": "Password Updated Successfully"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "description": "Description of the specific error"
+                    }
+                  }
+                },
+                "examples": {
+                  "ExpiredOTP": {
+                    "value": {
+                      "error": "OTP has expired, request for new otp"
+                    }
+                  },
+                  "NewPasswordNotValid": {
+                    "value": {
+                      "error": "Password must be at least 8 characters long and contain at least 1 special character"
+                    }
+                  },
+                  "EmailDoesNotExists": {
+                    "value": {
+                      "error": "User does not exists with this email"
+                    }
+                  }
+
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "OTP did not match"
           }
         }
       }

@@ -103,20 +103,22 @@ export default class UserController {
         newUsername,
         newEmail
       );
-      return res.status(201).send(updatedRecord);
+      return res
+        .status(201)
+        .json({ response: "Updated Successfully", updatedRecord });
     } catch (err) {
       console.log("Error form update user details: ", err);
-      throw new ApplicationError("Something wrong with this request", 503);
+      throw new ApplicationError("Something wrong with this request", 500);
     }
   }
   async forgetPassword(req, res) {
-    let { email, otp, newPassword } = req.body;
+    let { email, userOtp, newPassword } = req.body;
 
     if (!UserDetailsValidator.emailValidator(email)) {
       return res.status(400).json({ error: "Invalid email format" });
     }
     let userData = await this.userRepository.findUser(email);
-    console.log(userData);
+    //console.log(userData);
     let userId = -1;
     if (Array.isArray(userData)) {
       return res
@@ -125,7 +127,7 @@ export default class UserController {
     } else {
       userId = userData.user_id;
     }
-    if (otp) {
+    if (userOtp) {
       //verify otp and if correct change the password
       let otpRecord = await this.userRepository.fetchOTP(email);
       let timestamp = otpRecord[0].updated_at;
@@ -142,9 +144,15 @@ export default class UserController {
       // console.log("current time ", currentTime);
       // console.log("otp time", otpTime);
       // console.log("Time difference ", timeDifferenceMinutes);
+      console.log(otpRecord);
       if (timeDifferenceMinutes >= 15) {
-        return res.status(401).send("OTP has expired, request for new otp");
+        return res.status(400).send("OTP has expired, request for new otp");
       }
+
+      if (Number(userOtp) != Number(otpRecord[0].hashed_otp)) {
+        return res.status(401).send("OTP did not match");
+      }
+
       if (!UserDetailsValidator.passwordValidator(newPassword)) {
         return res.status(400).json({
           error:
@@ -159,7 +167,7 @@ export default class UserController {
       if (response) {
         return res.status(201).send("Password Updated Successfully");
       } else {
-        return res.status(401).send("Password updation not successful");
+        return res.status(400).send("Password updation not successful");
       }
     } else {
       let newOTP = new OTP().totp();
@@ -178,13 +186,14 @@ export default class UserController {
   async userPasswordReset(req, res) {
     let { userId, newPassword, oldPassword } = req.body;
     let user = await this.userRepository.findUserByUserId(userId);
-    console.log(oldPassword);
+    //console.log(oldPassword);
     const result = await bcrypt.compare(oldPassword, user.password);
     try {
       if (result) {
         if (!UserDetailsValidator.passwordValidator(newPassword)) {
+          console.log(UserDetailsValidator.passwordValidator(newPassword));
           return res
-            .status(401)
+            .status(400)
             .send(
               "Password must be at least 8 characters long and contain at least 1 special character"
             );
@@ -197,14 +206,14 @@ export default class UserController {
         if (response) {
           return res.status(201).send("Password Updated Successfully");
         } else {
-          return res.status(401).send("Password updation not successful");
+          return res.status(400).send("Password updation not successful");
         }
       } else {
-        return res.status(401).send("Old password entered was not correct");
+        return res.status(400).send("Old password entered was not correct");
       }
     } catch (error) {
       console.log("Error form userPasswordReset: ", err);
-      throw new ApplicationError("Something wrong with this request", 503);
+      throw new ApplicationError("Something wrong with this request", 500);
     }
   }
 }
