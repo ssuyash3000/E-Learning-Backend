@@ -1,0 +1,154 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "version": "1.0.0",
+    "description": "API for E-commerce application",
+    "title": "E-Learning Platfrom API"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3400",
+      "description": "API for E-commerce application - \nURL for testing in local"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "JWT": {
+        "in": "header",
+        "name": "Authorization",
+        "type": "apiKey"
+      }
+    }
+  },
+  "paths": {
+    "/api/user/signIn": {
+      "post": {
+        "tags": ["User"],
+        "summary": "Log-in",
+        "description": "Providing correct credential will get you jwt token for making requets on secured route",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string"
+                  }
+                },
+                "example": {
+                  "email": "ssuyash2001@gmail.com",
+                  "password": "123456789@@"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Token Sent - VALID for only 1hr"
+          },
+          "400": {
+            "description": "Incorrect Credentials"
+          },
+          "404": {
+            "description": "This email does not exists"
+          }
+        }
+      }
+    },
+    "/api/user/signUp": {
+      "post": {
+        "tags": ["User"],
+        "summary": "Sign-up",
+        "description": "Create user - with given mail, username and password,\nEmail and username are needed to be unique,\n Passowrd should contain at least one special character and minimum length 8",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string"
+                  }
+                },
+                "example": {
+                  "email": "example@example.com",
+                  "username": "example_user_id",
+                  "password": "123456789@@"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "description": "Description of the specific error"
+                    }
+                  }
+                },
+                "examples": {
+                  "PasswordError": {
+                    "value": {
+                      "error": "Password must be at least 8 characters long and contain at least 1 special character"
+                    }
+                  },
+                  "EmailError": {
+                    "value": {
+                      "error": "Incorrect Email foramt"
+                    }
+                  },
+                  "UsernameError": {
+                    "value": {
+                      "error": "Username must be at least 3 characters long"
+                    }
+                  }
+                }
+              }
+            }
+          },
+
+          "409": {
+            "description": "User with this, already exists"
+          },
+          "500": {
+            "description": "The server has encountered a situation it does not know how to handle."
+          }
+        }
+      }
+    },
+    "/api/user/getUserDetails/": {
+      "get": {
+        "tags": ["User"],
+        "summary": "Get all user details",
+        "security": [{ "JWT": {} }],
+        "description": "Get all user details",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    }
+  }
+}

@@ -13,7 +13,7 @@ export default class UserController {
   }
 
   async signUp(req, res, next) {
-    console.log(req.body);
+    //console.log(req.body);
     let { username, email, password } = req.body;
     try {
       // // Password validation regex: at least 1 special character and minimum length of 8 characters
@@ -49,8 +49,8 @@ export default class UserController {
     try {
       const user = await this.userRepository.findUser(email);
       //console.log(user);
-      if (!user) {
-        return res.status(400).send("Incorrect Credential");
+      if (Array.isArray(user)) {
+        return res.status(404).send("This email do not exists");
       } else {
         const result = await bcrypt.compare(password, user.password);
         if (result) {
@@ -82,9 +82,9 @@ export default class UserController {
   }
   async getUserDetails(req, res) {
     try {
-      let obj = { username: req.username, email: req.email };
-      console.log(obj);
-      return res.status(200).send(obj);
+      let obj = { username: req.body.username, email: req.body.email };
+      console.log("getUserdetails: ", obj);
+      return res.status(200).json(obj);
     } catch (error) {
       console.log("Error form getUserDetails: ", err);
       throw new ApplicationError("Something wrong with this request", 503);

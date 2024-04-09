@@ -119,13 +119,17 @@ export default class UserRepository {
     return result[0];
   }
   async findUser(email) {
-    const result = await sql.unsafe(
-      `SELECT user_id, username, password FROM users WHERE email = '${email}';`
-    );
-    // console.log(result);
-    if (result.length > 0) return result[0];
-    else {
-      return result;
+    try {
+      const result = await sql.unsafe(
+        `SELECT user_id, username, password FROM users WHERE email = '${email}';`
+      );
+      // console.log(result);
+      if (result.length > 0) return result[0];
+      else {
+        return result;
+      }
+    } catch (error) {
+      throw new ApplicationError("Something wrong with the database", 503);
     }
   }
   async findByEmail(email) {

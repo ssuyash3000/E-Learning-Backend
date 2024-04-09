@@ -30,7 +30,7 @@ const jwtAuth = (req, res, next) => {
     if (!new UserRepository().findByEmail(payload.email)) {
       return res.status(401).send("Email does not exists in the database");
     }
-    console.log(payload);
+    console.log("payload : ", payload);
   } catch (err) {
     // 5. Else return error
     //console.log(err);

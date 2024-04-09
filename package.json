@@ -16,6 +16,7 @@
     "jsonwebtoken": "^9.0.2",
     "otp": "^1.1.2",
     "postgres": "^3.4.4",
-    "resend": "^3.2.0"
+    "resend": "^3.2.0",
+    "swagger-ui-express": "^5.0.0"
   }
 }
