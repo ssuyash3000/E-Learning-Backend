@@ -2,7 +2,7 @@ import UserModel from "./user.model.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import { Resend } from "resend";
-import OTP from "OTP";
+import OTP from "otp";
 import UserRepository from "./user.repository.js";
 import { UserError } from "../../error-handler/userError.js";
 import UserDetailsValidator from "../../middleware/userDetailsValidator.js";
