@@ -6,18 +6,27 @@ import createReqTables from "./src/config/tableGeneration.js";
 import { UserError } from "./src/error-handler/userError.js";
 import apiDocs from "./swagger.json" assert { type: "json" };
 import CourseRoute from "./src/features/course/course.routes.js";
+import { errorLog, requestLogger } from "./src/middleware/logger.middleware.js";
 const server = express();
 server.use(express.json());
 server.get("/", (req, res) => {
-  res.send("Welcome to  this project");
+  res.send(
+    "Welcome to  this project - visit https://e-learning-backend-production-3d18.up.railway.app/api-docs/ - for api doc."
+  );
 });
 
 server.use("/api-docs", swagger.serve, swagger.setup(apiDocs));
-
+server.use(requestLogger);
 server.use("/api/user", UserRouter);
 server.use("/api/course", CourseRoute);
 
 server.use((err, req, res, next) => {
+  let logData = `\n${new Date().toString()} \nreq.body = ${JSON.stringify(
+    req.body
+  )}\nreq.url = ${req.url}`;
+
+  errorLog(logData);
+
   if (err instanceof UserError) {
     return res.status(err.code).send(err.message);
   }
