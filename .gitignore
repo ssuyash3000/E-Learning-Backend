@@ -2,3 +2,4 @@
 /package-lock.json
 /error-log.txt
 /request-log.txt
+/.env
