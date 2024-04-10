@@ -35,7 +35,7 @@ const jwtAuth = (req, res, next) => {
     // 5. Else return error
     //console.log(err);
     console.log(err);
-    return res.status(401).send("Unauthorized/Invalid / Expired");
+    return res.status(401).send("Unauthorized / Invalid / Expired - Token");
   }
   // 4. Call next middleware
   next();

@@ -7,7 +7,7 @@ export default class CourseController {
     this.courseRepository = new CourseRepository();
   }
   async fetchCourse(req, res, next) {
-    let { limit, offset } = req.body;
+    let { limit, offset } = req.params;
     try {
       let result = await this.courseRepository.fetchCourse(limit, offset);
       return res.status(200).json({ result });
@@ -38,7 +38,7 @@ export default class CourseController {
       );
       console.log(newCourse);
       let result = await this.courseRepository.insertCourse(newCourse);
-      return res.status(200).json({ response: "Course Added", result });
+      return res.status(201).json({ response: "Course Added", result });
     } catch {
       console.log("From insertCourse course controller: ", error);
       throw new ApplicationError("Something went wrong", 503);
