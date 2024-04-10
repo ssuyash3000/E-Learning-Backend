@@ -34,4 +34,10 @@ UserRouter.put("/updatePassword", jwtAuth, (req, res, next) => {
 UserRouter.put("/forgetPassword", (req, res, next) => {
   userController.forgetPassword(req, res, next);
 });
+UserRouter.get("/fetchUserCourse", jwtAuth, (req, res, next) => {
+  userController.fetchUserCourses(req, res, next);
+});
+UserRouter.post("/addCourse", jwtAuth, (req, res, next) => {
+  userController.addCourse(req, res, next);
+});
 export default UserRouter;

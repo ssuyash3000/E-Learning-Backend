@@ -38,10 +38,17 @@ let generationQueries = [
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
   );`,
+  // for maintaing superadmins - a user have to be made superadmin manually
+  // by running a insert query for inserting the user_id into superadmins table
+  // Example - SuperAdmin Credential - {
+  //   "username": "superAdmin",
+  //   "email": "superAdmin@elearning.com",
+  //   "password": "newPassword@123"
+  // }
   `CREATE TABLE superadmins (
     user_id INT PRIMARY KEY,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
-);`,
+  );`,
   // `ALTER TABLE otps
   // ALTER COLUMN created_at SET DATA TYPE TIMESTAMPTZ,
   // ALTER COLUMN updated_at SET DATA TYPE TIMESTAMPTZ;`,

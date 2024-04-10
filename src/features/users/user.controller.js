@@ -6,10 +6,12 @@ import OTP from "otp";
 import UserRepository from "./user.repository.js";
 import { UserError } from "../../error-handler/userError.js";
 import UserDetailsValidator from "../../middleware/userDetails.validator.js";
+import CourseRepository from "../course/course.repository.js";
 
 export default class UserController {
   constructor() {
     this.userRepository = new UserRepository();
+    this.courseRepository = new CourseRepository();
   }
 
   async signUp(req, res, next) {
@@ -113,74 +115,80 @@ export default class UserController {
   }
   async forgetPassword(req, res) {
     let { email, userOtp, newPassword } = req.body;
-
-    if (!UserDetailsValidator.emailValidator(email)) {
-      return res.status(400).json({ error: "Invalid email format" });
-    }
-    let userData = await this.userRepository.findUser(email);
-    //console.log(userData);
-    let userId = -1;
-    if (Array.isArray(userData)) {
-      return res
-        .status(400)
-        .json({ error: "User does not exists with this email" });
-    } else {
-      userId = userData.user_id;
-    }
-    if (userOtp) {
-      //verify otp and if correct change the password
-      let otpRecord = await this.userRepository.fetchOTP(email);
-      let timestamp = otpRecord[0].updated_at;
-      const otpTime = new Date(timestamp);
-
-      // Get the current time
-      const currentTime = new Date();
-
-      // Calculate the difference in milliseconds
-      const timeDifferenceMs = currentTime - otpTime;
-
-      // Convert milliseconds to minutes
-      const timeDifferenceMinutes = Math.floor(timeDifferenceMs / (1000 * 60));
-      // console.log("current time ", currentTime);
-      // console.log("otp time", otpTime);
-      // console.log("Time difference ", timeDifferenceMinutes);
-      console.log(otpRecord);
-      if (timeDifferenceMinutes >= 15) {
-        return res.status(400).send("OTP has expired, request for new otp");
+    try {
+      if (!UserDetailsValidator.emailValidator(email)) {
+        return res.status(400).json({ error: "Invalid email format" });
       }
-
-      if (Number(userOtp) != Number(otpRecord[0].hashed_otp)) {
-        return res.status(401).send("OTP did not match");
-      }
-
-      if (!UserDetailsValidator.passwordValidator(newPassword)) {
-        return res.status(400).json({
-          error:
-            "Password must be at least 8 characters long and contain at least 1 special character",
-        });
-      }
-      const hashedPassword = await bcrypt.hash(newPassword, 10);
-      let response = await this.userRepository.updateUserPassword(
-        userId,
-        hashedPassword
-      );
-      if (response) {
-        return res.status(201).send("Password Updated Successfully");
+      let userData = await this.userRepository.findUser(email);
+      //console.log(userData);
+      let userId = -1;
+      if (Array.isArray(userData)) {
+        return res
+          .status(400)
+          .json({ error: "User does not exists with this email" });
       } else {
-        return res.status(400).send("Password updation not successful");
+        userId = userData.user_id;
       }
-    } else {
-      let newOTP = new OTP().totp();
-      this.userRepository.storeOTP(email, newOTP, new Date());
-      const resend = new Resend(process.env.RE_SEND_API_KEY);
-      //send otp
-      resend.emails.send({
-        from: "e-learning@resend.dev",
-        to: `${email}`,
-        subject: "Otp for password change",
-        html: `<p>OTP for password reset is <strong>${newOTP}</strong>! OTP will be valid for only 15 Minutes</p>`,
-      });
-      return res.status(200).send("OTP sent");
+      if (userOtp) {
+        //verify otp and if correct change the password
+        let otpRecord = await this.userRepository.fetchOTP(email);
+        let timestamp = otpRecord[0].updated_at;
+        const otpTime = new Date(timestamp);
+
+        // Get the current time
+        const currentTime = new Date();
+
+        // Calculate the difference in milliseconds
+        const timeDifferenceMs = currentTime - otpTime;
+
+        // Convert milliseconds to minutes
+        const timeDifferenceMinutes = Math.floor(
+          timeDifferenceMs / (1000 * 60)
+        );
+        // console.log("current time ", currentTime);
+        // console.log("otp time", otpTime);
+        // console.log("Time difference ", timeDifferenceMinutes);
+        console.log(otpRecord);
+        if (timeDifferenceMinutes >= 15) {
+          return res.status(400).send("OTP has expired, request for new otp");
+        }
+
+        if (Number(userOtp) != Number(otpRecord[0].hashed_otp)) {
+          return res.status(401).send("OTP did not match");
+        }
+
+        if (!UserDetailsValidator.passwordValidator(newPassword)) {
+          return res.status(400).json({
+            error:
+              "Password must be at least 8 characters long and contain at least 1 special character",
+          });
+        }
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        let response = await this.userRepository.updateUserPassword(
+          userId,
+          hashedPassword
+        );
+        if (response) {
+          return res.status(201).send("Password Updated Successfully");
+        } else {
+          return res.status(400).send("Password updation not successful");
+        }
+      } else {
+        let newOTP = new OTP().totp();
+        this.userRepository.storeOTP(email, newOTP, new Date());
+        const resend = new Resend(process.env.RE_SEND_API_KEY);
+        //send otp
+        resend.emails.send({
+          from: "e-learning@resend.dev",
+          to: `${email}`,
+          subject: "Otp for password change",
+          html: `<p>OTP for password reset is <strong>${newOTP}</strong>! OTP will be valid for only 15 Minutes</p>`,
+        });
+        return res.status(200).send("OTP sent");
+      }
+    } catch (error) {
+      console.log("Error form forgetPassword usercontroller: ", err);
+      throw new ApplicationError("Something wrong with this request", 500);
     }
   }
   async userPasswordReset(req, res) {
@@ -212,7 +220,51 @@ export default class UserController {
         return res.status(400).send("Old password entered was not correct");
       }
     } catch (error) {
-      console.log("Error form userPasswordReset: ", err);
+      console.log("Error form userPasswordReset from usercontroller: ", err);
+      throw new ApplicationError("Something wrong with this request", 500);
+    }
+  }
+  async addCourse(req, res, next) {
+    let { userId, courseId } = req.body;
+    try {
+      let result = await this.courseRepository.courseExist(courseId);
+      if (!result) {
+        res.status(400).send("This course do no exists");
+      } else {
+        let result = await this.courseRepository.checkEnrollmentExists(
+          userId,
+          courseId
+        );
+        console.log("Count result from addCourse UserRepo", result);
+        if (result > 0) {
+          return res.status(400).send("User is already enrolled in the course");
+        } else {
+          let result = await this.courseRepository.addCourseToUser(
+            userId,
+            courseId
+          );
+          return res.status(201).json({
+            response: "User successfully enrolled in the course",
+            result,
+          });
+        }
+      }
+    } catch (error) {
+      console.log("Error form addCourse usercontroller: ", err);
+      throw new ApplicationError("Something wrong with this request", 500);
+    }
+
+    //return res.status(200).send("GOOD, GOOD");
+  }
+  async fetchUserCourses(req, res, next) {
+    try {
+      let { userId } = req.body;
+
+      let result = await this.courseRepository.fetchUserCourses(userId);
+
+      return res.status(200).json(result);
+    } catch (error) {
+      console.log("Error form fetchUserCourses usercontroller: ", err);
       throw new ApplicationError("Something wrong with this request", 500);
     }
   }
