@@ -23,7 +23,7 @@ server.use("/api/course", CourseRoute);
 server.use((err, req, res, next) => {
   let logData = `\n${new Date().toString()} \nreq.body = ${JSON.stringify(
     req.body
-  )}\nreq.url = ${req.url}`;
+  )}\nreq.url = ${req.url}\n${JSON.stringify(err)}`;
 
   errorLog(logData);
 
