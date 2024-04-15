@@ -467,7 +467,7 @@
     "/api/course/getCourse": {
       "get": {
         "tags": ["Courses"],
-        "summary": "Fetch all the courses which are in database - this has been declared as post method here - as swagger do not allow request body in get method",
+        "summary": "Fetch all the courses which are in database.",
         "description": "Pagination is enballed - user can pass limit and offset in request body for activating pagination, in case limit is not passed requets will return all the courses",
         "parameters": [
           {
