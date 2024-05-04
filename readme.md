@@ -1,5 +1,3 @@
-Certainly! Below is a professionally formatted README.md document incorporating the expected environment variables provided:
-
 ---
 
 # E-Learning Backend
